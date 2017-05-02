@@ -1,0 +1,98 @@
+<!Doctype html>
+<html>
+<head>
+  <title>签名</title>
+    <meta charset="utf8" />
+    </head>
+    <body>
+      <style>
+          canvas{border:1px solid #ccc;display:block;}
+	    </style>
+	      <h1>签名</h1>
+	        <canvas id="myCanvas" width="400" height="400">
+		    Your browser does not support HTML5 Canvas.
+		      </canvas>
+		        <button id="btnSaveId">Save</button>
+			  <button id="btnCleanId">Clean</button>
+			    <img id="qmImgId" />
+			      <script>
+			          var w,h=0,isPainting=false,recorder=[];
+				      var pen=null,myCanvas = null;
+				          function recordPoint(x,y,isDragging){
+					        recorder.push([x,y,isDragging]);
+						    }
+						        var Events = {
+							      touchStart:function(e){
+							              var mouseX = e.pageX-this.offsetLeft;
+								              var mouseY = e.pageY-this.offsetTop;
+									              isPainting = true;
+
+										              recordPoint(mouseX,mouseY);
+											              draw();
+												            },
+													          touchEnd: function(){
+														          isPainting = false;
+															        },
+																      touchMove: function(e){
+																              if(isPainting){
+																	                var mouseX = e.pageX-this.offsetLeft;
+																			          var mouseY = e.pageY-this.offsetTop;
+
+																				            recordPoint(mouseX,mouseY,true);
+																					              draw();
+																						              }
+																							            }
+																								        }
+																									    function initCanvas(){
+																									          myCanvas = document.getElementById("myCanvas");
+																										        if(!myCanvas||!myCanvas.getContext){return false;}
+																											      pen = myCanvas.getContext("2d");
+
+																											            myCanvas.addEventListener("touchstart",Events.touchStart);
+																												          myCanvas.addEventListener("touchend",Events.touchEnd);
+																													        myCanvas.addEventListener("touchmove",Events.touchMove);
+
+																														      myCanvas.addEventListener("mousedown",Events.touchStart);
+																														            myCanvas.addEventListener("mouseup",Events.touchEnd);
+																															          myCanvas.addEventListener("mousemove",Events.touchMove);
+																																        myCanvas.addEventListener("mouseleave",Events.touchEnd);
+																																	    }
+
+																																	        var point = {};
+																																		    function draw(){
+																																		          pen.strokeStyle = "#000";
+																																			        pen.lineJoin = "round";
+																																				      pen.lineWidth=2;
+																																				            while(recorder.length>0){
+																																					            var pointArr = recorder.pop();
+																																						            point.bx = point.x;
+																																							            point.by = point.y;
+																																								            point.x = pointArr[0];
+																																									            point.y=pointArr[1];
+																																										            point.drag = pointArr[2];
+																																											            pen.beginPath();
+																																												            if(point.drag){
+																																													              pen.moveTo(point.bx,point.by)
+																																														              }else{
+																																															                pen.moveTo(point.x,point.y)
+																																																	        }
+																																																		        pen.lineTo(point.x,point.y);
+																																																			        pen.closePath();
+																																																				        pen.stroke();
+																																																					      }
+																																																					          }
+
+																																																						      initCanvas();
+																																																						        </script>
+
+																																																							  <script>
+																																																							    btnSaveId.addEventListener("click",function(){
+																																																							        qmImgId.src= myCanvas.toDataURL("images/png");
+																																																								  },false)
+																																																								    btnCleanId.addEventListener("click",function(){
+																																																								        pen.clearRect(0,0,myCanvas.width,myCanvas.height);
+																																																									  },false)
+																																																									    </script>
+																																																									    </body>
+																																																									    </html>
+
