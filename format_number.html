@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>A</title>
+  </head>
+  <body>
+    <h1>A</h1>
+    <script>
+    function toThousands3(num) {
+        return (num || 0).toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+    }
+    console.log(toThousands3(102))
+    console.log(toThousands3(1002))
+    console.log(toThousands3(10002))
+    console.log(toThousands3(100002))
+    console.log(toThousands3(1000002))
+    console.log(toThousands3(10000002))
+    </script>
+    <script>
+    var FORMAT_NUMBER = {};
+    FORMAT_NUMBER.defaultOptions = {
+      lang: {
+        decimalPoint: '.',
+        numericSymbols: ['k', 'M', 'G', 'T', 'P', 'E'],
+        thousandsSep: ','
+      },
+    };
+    FORMAT_NUMBER.pick = function() {
+        var args = arguments,
+            i,
+            arg,
+            length = args.length;
+        for (i = 0; i < length; i++) {
+            arg = args[i];
+            if (arg !== undefined && arg !== null) {
+                return arg;
+            }
+        }
+    };
+    FORMAT_NUMBER.pInt = function(s, mag) {
+        return parseInt(s, mag || 10);
+    };
+    FORMAT_NUMBER.isNumber = function(n) {
+        return typeof n === 'number' && !isNaN(n);
+    };
+    FORMAT_NUMBER.numberFormat = function(number, decimals, decimalPoint, thousandsSep) {
+        number = +number || 0;
+        decimals = +decimals;
+
+        var lang = FORMAT_NUMBER.defaultOptions.lang,
+            origDec = (number.toString().split('.')[1] || '').length,
+            strinteger,
+            thousands,
+            ret,
+            roundedNumber;
+
+        if (decimals === -1) {
+            // Preserve decimals. Not huge numbers (#3793).
+            decimals = Math.min(origDec, 20);
+        } else if (!FORMAT_NUMBER.isNumber(decimals)) {
+            decimals = 2;
+        }
+
+        // Add another decimal to avoid rounding errors of float numbers. (#4573)
+        // Then use toFixed to handle rounding.
+        roundedNumber = (
+            Math.abs(number) + Math.pow(10, -Math.max(decimals, origDec) - 1)
+        ).toFixed(decimals);
+
+        // A string containing the positive integer component of the number
+        strinteger = String(FORMAT_NUMBER.pInt(roundedNumber));
+
+        // Leftover after grouping into thousands. Can be 0, 1 or 3.
+        thousands = strinteger.length > 3 ? strinteger.length % 3 : 0;
+
+        // Language
+        decimalPoint = FORMAT_NUMBER.pick(decimalPoint, lang.decimalPoint);
+        thousandsSep = FORMAT_NUMBER.pick(thousandsSep, lang.thousandsSep);
+
+        // Start building the return
+        ret = number < 0 ? '-' : '';
+
+        // Add the leftover after grouping into thousands. For example, in the
+        // number 42 000 000, this line adds 42.
+        ret += thousands ? strinteger.substr(0, thousands) + thousandsSep : '';
+
+        // Add the remaining thousands groups, joined by the thousands separator
+        ret += strinteger
+            .substr(thousands)
+            .replace(/(\d{3})(?=\d)/g, '$1' + thousandsSep);
+
+        // Add the decimal point and the decimal component
+        if (decimals) {
+            // Get the decimal component
+            ret += decimalPoint + roundedNumber.slice(-decimals);
+        }
+
+        return parseFloat(ret).toFixed(1);
+    };
+    FORMAT_NUMBER.formatLabelNumber = function(num){
+      var numericSymbols = FORMAT_NUMBER.defaultOptions.lang.numericSymbols,multi=0,
+        i = numericSymbols && numericSymbols.length,ret,pnSymbol=(num>=0)?"":"-",value=Math.abs(num);
+      while (i-- && ret === undefined) {
+          multi = Math.pow(1000, i + 1);
+          // if (value >= multi && (value * 10) % multi === 0 && numericSymbols[i] !== null && value !== 0) { // #5480
+          if (value >= multi && numericSymbols[i] !== null && value !== 0) { // #5480
+            // console.log(value+"===="+multi+"---"+ FORMAT_NUMBER.numberFormat(value / multi, -1))
+            ret = FORMAT_NUMBER.numberFormat(value / multi, -1) + numericSymbols[i];
+          }
+      }
+
+      return pnSymbol+(ret || value);
+    }
+    console.log(FORMAT_NUMBER.formatLabelNumber(102))
+    console.log(FORMAT_NUMBER.formatLabelNumber(1002))
+    console.log(FORMAT_NUMBER.formatLabelNumber(1602))
+    console.log(FORMAT_NUMBER.formatLabelNumber(16002))
+    console.log(FORMAT_NUMBER.formatLabelNumber(-100002))
+    console.log(FORMAT_NUMBER.formatLabelNumber(1000002))
+    console.log(FORMAT_NUMBER.formatLabelNumber(10000002))
+    </script>
+  </body>
+</html>
